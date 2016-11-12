@@ -28,7 +28,7 @@ def webhook():
 	    if 'sender' in event:
 		sender_id = event['sender']['id']
 		message = event['message']['text']
-		send_FB_message(sender_id, message)
+		send_FB_message(sender_id, message + 'pippity')
 
     return Response()
 
