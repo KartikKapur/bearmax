@@ -41,7 +41,9 @@ def send_FB_message(sender_id, message):
                 'recipient': {
                     'id': sender_id
                 },
-                'message': message
+                'message': {
+		     'text': message
+		}
             }
         ),
         headers={'content-type': 'application/json'}
