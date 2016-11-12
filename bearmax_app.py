@@ -27,7 +27,8 @@ def webhook():
 	    print(event)
 	    if 'sender' in event:
 		sender_id = event['sender']['id']
-		send_FB_message(sender_id, 'bearmax')
+		message = event['message']['text']
+		send_FB_message(sender_id, message)
 
     return Response()
 
