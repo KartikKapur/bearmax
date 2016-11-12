@@ -32,7 +32,7 @@ def webhook():
                 message = event['message']['text']
                 natural_language_classifier, instance_id = init_nat_lang_classifier(True)
                 symptom, symptom_classes = get_symptoms(message, natural_language_classifier, instance_id)
-                send_FB_message(sender_id, "You probably have " + symptom + " lmao")
+                send_FB_message(sender_id, "You probably have " + symptom + " lol")
 
     return Response()
 
