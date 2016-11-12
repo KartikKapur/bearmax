@@ -5,6 +5,8 @@ import requests
 import urllib
 from webob import Response
 
+import watson
+
 FB_APP_TOKEN = 'EAAQ7z3BxdYgBAHGNIM6phWb4mH0vDCfsaQaY5rxoN4ZCzZBaKmheZCsYZAkLZCB5XLmcUKkby9N5ncCPIH58swZCp5jRhTTnEQ9aaDttl4eVYUMp8h3x954vUQ6SsX5JOPeEZAhGkdl3ot5jfy8UtgZBDIXWdkOyk51Q13C3ZBoAC2QZDZD'
 FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
 FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
@@ -28,7 +30,9 @@ def webhook():
 	    if 'sender' in event:
 		sender_id = event['sender']['id']
 		message = event['message']['text']
-		send_FB_message(sender_id, message + 'pippity')
+        natural_language_classifier, instance_id = init_nat_lang_classifier(True)
+        symptom, symptom_classes = get_symptoms(message, natural_language_classifier, instance_id)
+		send_FB_message(sender_id, "You probably have " + symptom + " lmao")
 
     return Response()
 
