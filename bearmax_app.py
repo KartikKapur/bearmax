@@ -4,6 +4,7 @@ import json
 import requests
 import urllib
 
+FB_APP_TOKEN = 'EAAQ7z3BxdYgBAHGNIM6phWb4mH0vDCfsaQaY5rxoN4ZCzZBaKmheZCsYZAkLZCB5XLmcUKkby9N5ncCPIH58swZCp5jRhTTnEQ9aaDttl4eVYUMp8h3x954vUQ6SsX5JOPeEZAhGkdl3ot5jfy8UtgZBDIXWdkOyk51Q13C3ZBoAC2QZDZD'
 FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
 FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
 FB_THREAD_SETTINGS_ENDPOINT = FB_ENDPOINT.format('thread_settings')
@@ -27,24 +28,12 @@ def webhook():
 		send_FB_message(sender_id, 'bearmax')
 
 
-def send_persistent_menu():
-    fb_response = requests.post(
-        FB_THREAD_SETTINGS_ENDPOINT,
-        params={'access_token': os.environ['FB_APP_TOKEN']},
-        data=json.dumps({}),
-        headers={'content-type': 'application/json'}
-    )
-    if not fb_response.ok:
-        app.logger.warning('Not OK: {0}: {1}'.format(
-            fb_response.status_code,
-            fb_response.text
-        ))
 
 
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
         FB_MESSAGES_ENDPOINT,
-        params={'access_token': os.environ['FB_APP_TOKEN']},
+        params={'access_token': FB_APP_TOKEN},
         data=json.dumps(
             {
                 'recipient': {
