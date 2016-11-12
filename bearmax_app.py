@@ -15,4 +15,74 @@ def webhook():
         else:
             return 'Wrong validation token'
     elif request.method == 'POST':
-	return 'bleh'
+        data = json.loads(request.data)['entry'][0]['messaging']
+	for i in range(len(data)):
+	    event = data[i]
+	    if 'sender' in event:
+		sender_id = event['sender']['id']
+		send_FB_message(sender_id, 'bearmax')
+
+
+def send_persistent_menu():
+    fb_response = requests.post(
+        FB_THREAD_SETTINGS_ENDPOINT,
+        params={'access_token': os.environ['FB_APP_TOKEN']},
+        data=json.dumps({}),
+        headers={'content-type': 'application/json'}
+    )
+    if not fb_response.ok:
+        app.logger.warning('Not OK: {0}: {1}'.format(
+            fb_response.status_code,
+            fb_response.text
+        ))
+
+
+def send_FB_message(sender_id, message):
+    fb_response = requests.post(
+        FB_MESSAGES_ENDPOINT,
+        params={'access_token': os.environ['FB_APP_TOKEN']},
+        data=json.dumps(
+            {
+                'recipient': {
+                    'id': sender_id
+                },
+                'message': message
+            }
+        ),
+        headers={'content-type': 'application/json'}
+    )
+    if not fb_response.ok:
+        app.logger.warning('Not OK: {0}: {1}'.format(
+            fb_response.status_code,
+            fb_response.text
+        ))
+
+
+def send_FB_text(sender_id, text, quick_replies=None):
+    message = {'text': text}
+    if quick_replies:
+        message['quick_replies'] = quick_replies
+    return send_FB_message(
+        sender_id,
+        message
+    )
+
+
+def send_FB_buttons(sender_id, text, buttons):
+    return send_FB_message(
+        sender_id,
+        {
+            'attachment': {
+                'type': 'template',
+                'payload': {
+                    'template_type': 'button',
+                    'text': text,
+                    'buttons': buttons
+                }
+            }
+        }
+    )
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
