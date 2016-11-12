@@ -5,7 +5,7 @@ import sys
 USERNAME = '9bb44fae-5d4f-4f55-a024-6278ae14c655'
 PASSWORD = 'ITch7aNcuaa2'
 
-CLASSES_PATH = 'resources/classes.csv'
+CLASSES_PATH = 'resources/normalized_classes.csv'
 
 def get_symptoms(statement, natural_language_classifier, instance_id):
 
@@ -36,6 +36,10 @@ def init_nat_lang_classifier(initialized=False):
 
     return
 
+def remove_classifier(natural_language_classifier, instance_id):
+    natural_language_classifier.remove(instance_id)
+
 if __name__ == '__main__':
     natural_language_classifier, instance_id = init_nat_lang_classifier(True)
     print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id))
+    # remove_classifier(natural_language_classifier, "e82f62x108-nlc-5217")
