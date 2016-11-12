@@ -4,6 +4,10 @@ import json
 import requests
 import urllib
 
+FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
+FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
+FB_THREAD_SETTINGS_ENDPOINT = FB_ENDPOINT.format('thread_settings')
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
