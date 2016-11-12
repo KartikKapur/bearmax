@@ -24,6 +24,7 @@ def webhook():
         data = json.loads(request.data)['entry'][0]['messaging']
 	for i in range(len(data)):
 	    event = data[i]
+	    print(event)
 	    if 'sender' in event:
 		sender_id = event['sender']['id']
 		send_FB_message(sender_id, 'bearmax')
