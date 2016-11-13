@@ -105,8 +105,8 @@ def diagnose(apimedic_client, bot_user):
     for diag in diagnosis:
         name, specialisation = diag['Issue']['Name'], diag['Specialisation'][0]['Name']
         accuracy = diag['Issue']['Accuracy']
-        # if specialisation == 'General practice':
-        #     specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
+        if specialisation == 'General practice':
+            specialisation = 'treatment'
         send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy, name.lower()))
     send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
     reset_symptoms(bot_user)
