@@ -172,7 +172,7 @@ def add_symptom(bot_user, symptom):
     )
 
 def init_bot_user(sender_id):
-    send_FB_text(sender_id, 'Please enter your gender and your year of birth as follows: "Gender: <gender>, YOB: <yob>"')
+    send_FB_text(sender_id, 'Please enter your gender and your year of birth as follows: \"Gender: <gender>, YOB: <yob>\"')
     handle.bot_users.insert({
         'sender_id': sender_id,
         'symptoms': []
