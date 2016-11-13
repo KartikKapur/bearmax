@@ -8,7 +8,7 @@ class Userdetails:
         self.birthday= birthday
         self.location = location
     def get_demographics(self):
-        return gender, birthdate
+        return self.gender, self.birthdate
 
 gender = graph.get_object(sex = 'gender')
 birthdate = graph.get_object(birth = 'birthday')
