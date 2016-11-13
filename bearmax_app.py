@@ -57,11 +57,12 @@ def webhook():
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
                     send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
-                sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
-                if sender_id_matches:
-                    bot_user = sender_id_matches[0]
-                    apimedic_client = SymptomChecker()
-                    handle_event(event, bot_user, apimedic_client)
+                else:
+                    sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
+                    if sender_id_matches:
+                        bot_user = sender_id_matches[0]
+                        apimedic_client = SymptomChecker()
+                        handle_event(event, bot_user, apimedic_client)
 
     return Response()
 
