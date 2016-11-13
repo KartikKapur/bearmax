@@ -58,7 +58,7 @@ def webhook():
                 if 'message' in event and 'is_echo' in event['message'] and event['message']['is_echo']:
                     pass
                 elif handle.bot_users.find({'sender_id': sender_id}).count() == 0:
-                    send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
+                    send_FB_text(sender_id, 'Hello! I am Bearmax, your personal healthcare companion.')
                     init_bot_user(sender_id)
                 else:
                     sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
@@ -76,7 +76,7 @@ def handle_event(event, bot_user, apimedic_client):
         if message.isdigit():
             yob = int(message)
             set_age(bot_user, yob)
-            send_FB_text(bot_user['sender_id'], 'Thank you. You can now ask me for help.')
+            send_FB_text(bot_user['sender_id'], 'Thank you. Please describe one of your symptoms.')
         elif 'quick_reply' in event['message']:
             handle_quick_replies(
                 event['message']['quick_reply']['payload'],
@@ -139,7 +139,6 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
     if 'Gender:' in payload:
         gender = payload.split(':')[1]
         set_gender(bot_user, gender)
-        send_FB_text(bot_user['sender_id'], 'Thank you.')
         send_FB_text(bot_user['sender_id'], 'What year were you born?')
     elif 'Yes:' in payload:
         add_symptom(bot_user, payload.split(':')[1])
@@ -239,7 +238,7 @@ def reset_symptoms(bot_user):
 def init_bot_user(sender_id):
     send_FB_text(
         sender_id,
-        'What gender are you?',
+        'What is your gender?',
         quick_replies=[
             {
                 'content_type': 'text',
