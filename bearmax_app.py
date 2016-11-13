@@ -113,6 +113,7 @@ def diagnose(apimedic_client, bot_user):
 
 
 def handle_quick_replies(payload, bot_user, apimedic_client):
+    print('Payload: {0}'.format(payload))
     if 'Yes:' in payload:
         add_symptom(bot_user, payload.split(':')[1])
         bot_user = [x for x in handle.bot_users.find({'sender_id': bot_user['sender_id']})][0]
@@ -134,7 +135,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
             )
     elif 'No:' in payload:
         symptom_classes = payload.split(':')[1].split(',')
-        add_symptom_seen(bot_user, symptom_classes.pop())
+        add_symptom_seen(bot_user, symptom_classes.pop(0))
         if symptom_classes == ['']:
             if bot_user['symptoms']:
                diagnose(apimedic_client, bot_user) 
