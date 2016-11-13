@@ -92,7 +92,7 @@ def handle_event(event, bot_user, apimedic_client):
             symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes])
             send_FB_text(
                 bot_user['sender_id'],
-                'You seem to have {0}. Is this true?'.format(symptom.lower()),
+                'You seem to have a symptom known as \"{0}\". Is this true?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
              )
 
@@ -134,7 +134,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
 
             send_FB_text(
                 bot_user['sender_id'],
-                'Alright. Do you also have {0}?'.format(symptom.lower()),
+                'Alright. Do you also have a symptom known as \"{0}\"?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
     elif 'No:' in payload:
@@ -153,7 +153,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
             symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes)
             send_FB_text(
                 bot_user['sender_id'],
-                'Alright. Do you have {0}?'.format(symptom.lower()),
+                'Alright. Do you have symptom known as \"{0}\"?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
 
