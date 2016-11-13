@@ -144,6 +144,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                     bot_user['sender_id'],
                     'I\'m sorry, but I was not able to diagnose you.'
                 )
+                reset_symptoms(bot_user)
         else:
             symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes)
             send_FB_text(
