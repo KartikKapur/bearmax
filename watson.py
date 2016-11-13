@@ -39,9 +39,9 @@ def init_nat_lang_classifier(initialized=False):
 def remove_classifier(natural_language_classifier, instance_id):
     natural_language_classifier.remove(instance_id)
 
-# if __name__ == '__main__':
-#     natural_language_classifier, instance_id = init_nat_lang_classifier(True)
+if __name__ == '__main__':
+    natural_language_classifier, instance_id = init_nat_lang_classifier(True)
 #     # print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id))
 #     # print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id)[0])
 #     # remove_classifier(natural_language_classifier, "e82f62x108-nlc-5217")
-#     return get_symptoms(sys.argv[1], natural_language_classifier, instance_id)
+    print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id))

@@ -5,15 +5,43 @@ import requests
 import urllib
 from webob import Response
 
-from watson import *
+from pymongo import MongoClient
+
+import watson
+
+import facebook
+
+from symptomchecker import SymptomChecker
 
 FB_APP_TOKEN = 'EAAQ7z3BxdYgBAHGNIM6phWb4mH0vDCfsaQaY5rxoN4ZCzZBaKmheZCsYZAkLZCB5XLmcUKkby9N5ncCPIH58swZCp5jRhTTnEQ9aaDttl4eVYUMp8h3x954vUQ6SsX5JOPeEZAhGkdl3ot5jfy8UtgZBDIXWdkOyk51Q13C3ZBoAC2QZDZD'
 FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
 FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
 FB_THREAD_SETTINGS_ENDPOINT = FB_ENDPOINT.format('thread_settings')
 
+MONGO_DB_BEARMAX_DATABASE = 'bearmax'
+MONGO_DB_BEARMAX_ENDPOINT = 'ds151707.mlab.com'
+MONGO_DB_BEARMAX_PORT = 51707
+
+MONGO_DB_USERNAME = 'ajar98'
+MONGO_DB_PASSWORD = 'TodoistBot'
+
+SYMPTOMS_THRESHOLD = 4
+
+def connect():
+    connection = MongoClient(
+        MONGO_DB_BEARMAX_ENDPOINT,
+        MONGO_DB_BEARMAX_PORT
+    )
+    handle = connection[MONGO_DB_BEARMAX_DATABASE]
+    handle.authenticate(
+        MONGO_DB_USERNAME,
+        MONGO_DB_PASSWORD
+    )
+    return handle
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
+handle = connect()
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -26,16 +54,128 @@ def webhook():
         data = json.loads(request.data)['entry'][0]['messaging']
         for i in range(len(data)):
             event = data[i]
-            print(event)
             if 'sender' in event:
                 sender_id = event['sender']['id']
-                message = event['message']['text']
-                natural_language_classifier, instance_id = init_nat_lang_classifier(True)
-                symptom, symptom_classes = get_symptoms(message, natural_language_classifier, instance_id)
-                send_FB_message(sender_id, "You probably have " + symptom + " lol")
+                if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
+                    send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant. What seems to be the problem?')
+                    init_bot_user(sender_id)
+                sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
+                if sender_id_matches:
+                    bot_user = sender_id_matches[0]
+                    apimedic_client = SymptomChecker()
+                    handle_event(event, bot_user, apimedic_client)
 
     return Response()
 
+def handle_event(event, bot_user, apimedic_client):
+    if 'message' in event and 'text' in event['message']:
+        message = event['message']['text']
+        print('Message: {0}'.format(message))
+        if 'quick_reply' in event['message']:
+            handle_quick_replies(
+                event['message']['quick_reply']['payload'],
+                bot_user,
+                apimedic_client
+            )
+        else:
+            natural_language_classifier, instance_id = watson.init_nat_lang_classifier(True)
+            symptom, symptom_classes = watson.get_symptoms(message, natural_language_classifier, instance_id)
+            symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes][1:])
+            send_FB_text(
+                bot_user['sender_id'],
+                'You seem to have {0}. Is this true?'.format(symptom),
+                quick_replies=yes_no_quick_replies(symptom, symptom_classes)
+            )
+
+def diagnose(apimedic_client, bot_user):
+
+    diagnosis = apimedic_client.get_diagnosis(
+        bot_user['symptoms'],
+        bot_user['gender'],
+        bot_user['year_of_birth']
+    )
+    name, specialisation = diagnosis[0]['Issue']['Name'], diagnosis[0]['Specialisation'][0]['Name']
+    specialisation_msg = 'You should seek {0}.'.format(specialisation)
+    if specialisation == 'General practice':
+        specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
+    send_FB_text(bot_user['sender_id'], 'You seem to have {0}. {1}'.format(name, specialisation_msg))
+
+
+
+
+def handle_quick_replies(payload, bot_user, apimedic_client):
+    if 'Yes:' in payload:
+        add_symptom(bot_user, payload.split(':')[1])
+        bot_user = [x for x in handle.bot_users.find({'sender_id': bot_user['sender_id']})][0]
+        if len(bot_user['symptoms']) >= SYMPTOMS_THRESHOLD:
+            diagnose(apimedic_client, bot_user)
+        else:
+            proposed_symptoms = apimedic_client.get_proposed_symptoms(
+                bot_user['symptoms'],
+                bot_user['gender'],
+                bot_user['year_of_birth']
+            )
+            symptom_names = [symptom['Name'] for symptom in proposed_symptoms]
+            symptom, symptom_classes = symptom_names[0], symptom_names[1:]
+
+            send_FB_text(
+                bot_user['sender_id'],
+                'Alright. Do you also have {0}?'.format(symptom),
+                quick_replies=yes_no_quick_replies(symptom, symptom_classes)
+            )
+    elif 'No:' in payload:
+        symptom_classes = payload.split(':')[1].split(',')
+        if symptom_classes == ['']:
+            if bot_user['symptoms']:
+               diagnose(apimedic_client, bot_user) 
+            else:
+                send_FB_text(
+                    bot_user['sender_id'],
+                    'I\'m sorry, but I was not able to diagnose you.'
+                )
+        else:
+            symptom, symptom_classes = symptom_classes[0], symptom_classes[1:]
+            send_FB_text(
+                bot_user['sender_id'],
+                'Alright. Do you have {0}?'.format(symptom),
+                quick_replies=yes_no_quick_replies(symptom, symptom_classes)
+            )
+
+
+def yes_no_quick_replies(symptom, symptom_classes):
+    symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes])
+    return [
+        {
+            'content_type': 'text',
+            'title': 'Yes',
+            'payload': 'Yes:{0}'.format(symptom)
+        },
+        {
+            'content_type': 'text',
+            'title': 'No',
+            'payload': 'No:{0}'.format(symptom_classes)
+        }
+    ]
+
+
+def add_symptom(bot_user, symptom):
+    handle.bot_users.update(
+        {'sender_id': bot_user['sender_id']},
+        {
+            '$set': {
+                'symptoms': bot_user['symptoms'] + [symptom]
+            }
+        }
+    )
+
+def init_bot_user(sender_id):
+    gender, yob = facebook.get_demographics(sender_id)
+    handle.bot_users.insert({
+        'sender_id': sender_id,
+        'gender': gender,
+        'year_of_birth': yob,
+        'symptoms': []
+    })
 
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
@@ -47,8 +187,8 @@ def send_FB_message(sender_id, message):
                     'id': sender_id
                 },
                 'message': {
-		     'text': message
-		}
+                    'text': message
+                }
             }
         ),
         headers={'content-type': 'application/json'}
