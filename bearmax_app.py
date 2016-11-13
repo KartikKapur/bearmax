@@ -55,12 +55,10 @@ def webhook():
             if 'sender' in event:
                 print('Event: {0}'.format(event))
                 sender_id = event['sender']['id']
-                send_FB_text(sender_id, 'what da heck is happening')
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
                     send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
                 else:
-                    return Response()
                     sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
                     if sender_id_matches:
                         bot_user = sender_id_matches[0]
@@ -106,7 +104,7 @@ def diagnose(apimedic_client, bot_user):
     if specialisation == 'General practice':
         specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
     send_FB_text(bot_user['sender_id'], 'You seem to have {0}. {1}'.format(name, specialisation_msg))
-
+    reset_symptoms(bot_user)
 
 
 
@@ -171,6 +169,16 @@ def add_symptom(bot_user, symptom):
         {
             '$set': {
                 'symptoms': bot_user['symptoms'] + [symptom]
+            }
+        }
+    )
+
+def reset_symptoms(bot_user):
+    handle.bot_users.update(
+        {'sender_id': bot_user['sender_id']},
+        {
+            '$set': {
+                'symptoms': []
             }
         }
     )
