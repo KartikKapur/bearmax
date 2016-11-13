@@ -88,7 +88,7 @@ def handle_event(event, bot_user, apimedic_client):
             natural_language_classifier, instance_id = watson.init_nat_lang_classifier(True)
             symptom, symptom_classes = watson.get_symptoms(message, natural_language_classifier, instance_id)
             print('Symptom: {0}, Symptom Classes: {1}'.format(symptom, symptom_classes))
-            symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes][1:])
+            symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes])
             send_FB_text(
                 bot_user['sender_id'],
                 'You seem to have {0}. Is this true?'.format(symptom),
@@ -101,11 +101,13 @@ def diagnose(apimedic_client, bot_user):
         bot_user['gender'],
         bot_user['year_of_birth']
     )
-    name, specialisation = diagnosis[0]['Issue']['Name'], diagnosis[0]['Specialisation'][0]['Name']
-    specialisation_msg = 'You should seek {0}.'.format(specialisation)
-    if specialisation == 'General practice':
-        specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
-    send_FB_text(bot_user['sender_id'], 'You seem to have {0}. {1}'.format(name, specialisation_msg))
+    for diag in diagnosis:
+        name, specialisation = diag['Issue']['Name'], diag['Specialisation'][0]['Name']
+        accuracy = diag['Issue']['Accuracy']
+        # if specialisation == 'General practice':
+        #     specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
+        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy, name))
+    send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation, name))
     reset_symptoms(bot_user)
 
 
@@ -122,8 +124,8 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                 bot_user['gender'],
                 bot_user['year_of_birth']
             )
-            symptom_names = [symptom['Name'] for symptom in proposed_symptoms]
-            symptom, symptom_classes = symptom_names[0], ','.join(symptom_names[1:])
+            symptom_names = [symptom['Name'] for symptom in proposed_symptoms if symptom['Name'] not in bot_user['symptoms_seen']]
+            symptom, symptom_classes = symptom_names[0], ','.join(symptom_names)
 
             send_FB_text(
                 bot_user['sender_id'],
@@ -132,6 +134,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
             )
     elif 'No:' in payload:
         symptom_classes = payload.split(':')[1].split(',')
+        add_symptom_seen(bot_user, symptom_classes.pop())
         if symptom_classes == ['']:
             if bot_user['symptoms']:
                diagnose(apimedic_client, bot_user) 
@@ -141,7 +144,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                     'I\'m sorry, but I was not able to diagnose you.'
                 )
         else:
-            symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes[1:])
+            symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes)
             send_FB_text(
                 bot_user['sender_id'],
                 'Alright. Do you have {0}?'.format(symptom),
@@ -174,12 +177,24 @@ def add_symptom(bot_user, symptom):
         }
     )
 
+
+def add_symptom_seen(bot_user, symptom):
+    handle.bot_users.update(
+        {'sender_id': bot_user['sender_id']},
+        {
+            '$set': {
+                'symptoms_seen': bot_user['symptoms_seen'] + [symptom]
+            }
+        }
+    )
+
 def reset_symptoms(bot_user):
     handle.bot_users.update(
         {'sender_id': bot_user['sender_id']},
         {
             '$set': {
-                'symptoms': []
+                'symptoms': [],
+                'symptoms_seen': []
             }
         }
     )
@@ -188,7 +203,8 @@ def init_bot_user(sender_id):
     send_FB_text(sender_id, 'Please enter your gender and your year of birth as follows: \"Gender: <gender>, YOB: <yob>\"')
     handle.bot_users.insert({
         'sender_id': sender_id,
-        'symptoms': []
+        'symptoms': [],
+        'symptoms_seen': []
     })
 
 def init_gender_yob(sender_id, gender, yob):
