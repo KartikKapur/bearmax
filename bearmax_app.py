@@ -91,7 +91,7 @@ def handle_event(event, bot_user, apimedic_client):
             symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes])
             send_FB_text(
                 bot_user['sender_id'],
-                'You seem to have {0}. Is this true?'.format(symptom),
+                'You seem to have {0}. Is this true?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
 
@@ -106,7 +106,7 @@ def diagnose(apimedic_client, bot_user):
         accuracy = diag['Issue']['Accuracy']
         # if specialisation == 'General practice':
         #     specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
-        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy.lower(), name.lower()))
+        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy, name.lower()))
     send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
     reset_symptoms(bot_user)
 
