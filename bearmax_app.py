@@ -61,8 +61,9 @@ def webhook():
                     sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
                     if sender_id_matches:
                         bot_user = sender_id_matches[0]
-                        apimedic_client = SymptomChecker()
-                        handle_event(event, bot_user, apimedic_client)
+                        send_FB_text(bot_user['sender_id'], 'we get it.')
+                        # apimedic_client = SymptomChecker()
+                        # handle_event(event, bot_user, apimedic_client)
 
     return Response()
 
