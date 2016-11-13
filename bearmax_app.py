@@ -169,7 +169,7 @@ def yes_no_quick_replies(symptom, symptom_classes):
         }
     ]
 
- def set_gender(bot_user, gender):
+def set_gender(bot_user, gender):
     handle.bot_users.update(
         {'sender_id': bot_user['sender_id']},
         {
