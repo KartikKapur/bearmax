@@ -73,17 +73,18 @@ def handle_event(event, bot_user, apimedic_client):
     if 'message' in event and 'text' in event['message']:
         message = event['message']['text']
         print('Message: {0}'.format(message))
-        if 'Gender:' and 'YOB:' in message:
-            gender_string, yob_string = message.split(',')
-            gender, yob = gender_string.split(': ')[1], int(yob_string.split(': ')[1])
-            init_gender_yob(bot_user['sender_id'], gender, yob)
-            send_FB_text(bot_user['sender_id'], 'Thank you.')
+        if message.isdigit():
+            yob = int(message)
+            set_age(bot_user, yob)
+            send_FB_text(bot_user['sender_id'], 'Thank you. You can now ask me for help.')
         elif 'quick_reply' in event['message']:
             handle_quick_replies(
                 event['message']['quick_reply']['payload'],
                 bot_user,
                 apimedic_client
             )
+        elif message in ['Male', 'Female']:
+            pass
         else:
             natural_language_classifier, instance_id = watson.init_nat_lang_classifier(True)
             symptom, symptom_classes = watson.get_symptoms(message, natural_language_classifier, instance_id)
@@ -93,7 +94,7 @@ def handle_event(event, bot_user, apimedic_client):
                 bot_user['sender_id'],
                 'You seem to have {0}. Is this true?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
-            )
+             )
 
 def diagnose(apimedic_client, bot_user):
     diagnosis = apimedic_client.get_diagnosis(
@@ -110,11 +111,14 @@ def diagnose(apimedic_client, bot_user):
     send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
     reset_symptoms(bot_user)
 
-
-
 def handle_quick_replies(payload, bot_user, apimedic_client):
     print('Payload: {0}'.format(payload))
-    if 'Yes:' in payload:
+    if 'Gender:' in payload:
+        gender = payload.split(':')[1]
+        set_gender(bot_user, gender)
+        send_FB_text(bot_user['sender_id'], 'Thank you.')
+        send_FB_text(bot_user['sender_id'], 'What year were you born?')
+    elif 'Yes:' in payload:
         add_symptom(bot_user, payload.split(':')[1])
         bot_user = [x for x in handle.bot_users.find({'sender_id': bot_user['sender_id']})][0]
         if len(bot_user['symptoms']) >= SYMPTOMS_THRESHOLD:
@@ -153,7 +157,6 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
 
-
 def yes_no_quick_replies(symptom, symptom_classes):
     return [
         {
@@ -168,6 +171,15 @@ def yes_no_quick_replies(symptom, symptom_classes):
         }
     ]
 
+def set_gender(bot_user, gender):
+    handle.bot_users.update(
+        {'sender_id': bot_user['sender_id']},
+        {
+            '$set': {
+                'gender': gender,
+            }
+        }
+    )
 
 def add_symptom(bot_user, symptom):
     handle.bot_users.update(
@@ -202,19 +214,34 @@ def reset_symptoms(bot_user):
     )
 
 def init_bot_user(sender_id):
-    send_FB_text(sender_id, 'Please enter your gender and your year of birth as follows: \"Gender: <gender>, YOB: <yob>\"')
+    send_FB_text(
+        sender_id,
+        'What gender are you?',
+        quick_replies=[
+            {
+                'content_type': 'text',
+                'title': 'Male',
+                'payload': 'Gender:male'
+            },
+            {
+                'content_type': 'text',
+                'title': 'Female',
+                'payload': 'Gender:female'
+            }
+        ]
+    )
     handle.bot_users.insert({
         'sender_id': sender_id,
         'symptoms': [],
         'symptoms_seen': []
     })
 
-def init_gender_yob(sender_id, gender, yob):
+def set_age(sender_id, yob):
+    print('Setting yob to {0}'.format(yob))
     handle.bot_users.update(
         {'sender_id': sender_id},
         {
             '$set': {
-                'gender': gender,
                 'year_of_birth': yob
             }
         }
