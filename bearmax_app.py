@@ -55,7 +55,7 @@ def webhook():
             if 'sender' in event:
                 sender_id = event['sender']['id']
                 send_FB_text(sender_id, 'u hate me.')
-                return
+                return Response()
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
                     send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
