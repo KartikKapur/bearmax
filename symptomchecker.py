@@ -30,7 +30,7 @@ class SymptomChecker():
         self.issues = self.get_issues()
 
     def auth(self, username, password):
-        raw_hash_string = hmac.new(bytes(PASSWORD, encoding='utf-8'), AUTH_SERVICE_ENDPOINT.encode('utf-8')).digest()
+        raw_hash_string = hmac.new(PASSWORD.encode('utf-8'), AUTH_SERVICE_ENDPOINT.encode('utf-8')).digest()
         computed_hash_string = base64.b64encode(raw_hash_string).decode()
         post_headers = {'Authorization': 'Bearer {0}:{1}'.format(USERNAME, computed_hash_string)}
         response = requests.post(AUTH_SERVICE_ENDPOINT, headers=post_headers)
