@@ -53,11 +53,14 @@ def webhook():
         for i in range(len(data)):
             event = data[i]
             if 'sender' in event:
+                print('Event: {0}'.format(event))
                 sender_id = event['sender']['id']
+                send_FB_text(sender_id, 'what da heck is happening')
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
                     send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
                 else:
+                    return Response()
                     sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
                     if sender_id_matches:
                         bot_user = sender_id_matches[0]
