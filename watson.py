@@ -5,7 +5,7 @@ import sys
 USERNAME = '9bb44fae-5d4f-4f55-a024-6278ae14c655'
 PASSWORD = 'ITch7aNcuaa2'
 
-CURRENT_CLASSIFIER = 'e82f62x108-nlc-5218' 
+CURRENT_CLASSIFIER = '004a12x110-nlc-3365' 
 
 CLASSES_PATH = 'resources/normalized_classes.csv'
 
@@ -25,7 +25,7 @@ def init_nat_lang_classifier(initialized=False):
     natural_language_classifier = NaturalLanguageClassifierV1(username=USERNAME, password=PASSWORD)
 
     classifiers = natural_language_classifier.list()
-    # print(json.dumps(classifiers, indent=2))
+    print(json.dumps(classifiers, indent=2))
 
     if initialized and classifiers:
         return natural_language_classifier, [classifier['classifier_id'] for classifier in classifiers['classifiers'] if classifier['classifier_id'] == CURRENT_CLASSIFIER][0]
@@ -41,11 +41,11 @@ def init_nat_lang_classifier(initialized=False):
 def remove_classifier(natural_language_classifier, instance_id):
     natural_language_classifier.remove(instance_id)
 
-if __name__ == '__main__':
+if __name__ == '__main__': 
     natural_language_classifier, instance_id = init_nat_lang_classifier(True)
 #     print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id))
 #     # print(get_symptoms(sys.argv[1], natural_language_classifier, instance_id)[0])
-#     remove_classifier(natural_language_classifier, "004a12x110-nlc-3360")
+#     remove_classifier(natural_language_classifier, "8aff06x106-nlc-13805")
 #     print(json.dumps(natural_language_classifier.list(), indent=2))
 
 

@@ -109,6 +109,9 @@ def diagnose(apimedic_client, bot_user):
             specialisation = 'treatment'
         send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of an ailment known as \"{1}\"'.format(accuracy, name.lower()))
     send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
+    description = apimedic_client.get_description(diagnosis[0]['Issue']['ID'])
+    send_FB_text(bot_user['sender_id'], description['Description'])
+    send_FB_text(bot_user['sender_id'], description['TreatmentDescription'])
     reset_symptoms(bot_user)
 
 def handle_quick_replies(payload, bot_user, apimedic_client):
