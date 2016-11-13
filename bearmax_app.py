@@ -236,10 +236,10 @@ def init_bot_user(sender_id):
         'symptoms_seen': []
     })
 
-def set_age(sender_id, yob):
+def set_age(bot_user, yob):
     print('Setting yob to {0}'.format(yob))
     handle.bot_users.update(
-        {'sender_id': sender_id},
+        {'sender_id': bot_user['sender_id']},
         {
             '$set': {
                 'year_of_birth': yob
