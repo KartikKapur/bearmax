@@ -5,7 +5,7 @@ import sys
 USERNAME = '9bb44fae-5d4f-4f55-a024-6278ae14c655'
 PASSWORD = 'ITch7aNcuaa2'
 
-CURRENT_CLASSIFIER = '8aff06x106-nlc-13805' 
+CURRENT_CLASSIFIER = 'e82f62x108-nlc-5218' 
 
 CLASSES_PATH = 'resources/normalized_classes.csv'
 
