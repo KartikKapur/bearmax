@@ -124,7 +124,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                 bot_user['year_of_birth']
             )
             symptom_names = [symptom['Name'] for symptom in proposed_symptoms]
-            symptom, symptom_classes = symptom_names[0], symptom_names[1:]
+            symptom, symptom_classes = symptom_names[0], ','.join(symptom_names[1:])
 
             send_FB_text(
                 bot_user['sender_id'],
@@ -142,7 +142,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                     'I\'m sorry, but I was not able to diagnose you.'
                 )
         else:
-            symptom, symptom_classes = symptom_classes[0], symptom_classes[1:]
+            symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes[1:])
             send_FB_text(
                 bot_user['sender_id'],
                 'Alright. Do you have {0}?'.format(symptom),
@@ -151,7 +151,6 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
 
 
 def yes_no_quick_replies(symptom, symptom_classes):
-    symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes])
     return [
         {
             'content_type': 'text',
