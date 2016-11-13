@@ -106,8 +106,8 @@ def diagnose(apimedic_client, bot_user):
         accuracy = diag['Issue']['Accuracy']
         # if specialisation == 'General practice':
         #     specialisation_msg = 'You shouldn\'t worry. Just take rest and drink lots of fluids!'
-        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy, name))
-    send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation, diagnosis[0]['Issue']['Name']))
+        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of {1}'.format(accuracy.lower(), name.lower()))
+    send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
     reset_symptoms(bot_user)
 
 
@@ -130,7 +130,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
 
             send_FB_text(
                 bot_user['sender_id'],
-                'Alright. Do you also have {0}?'.format(symptom),
+                'Alright. Do you also have {0}?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
     elif 'No:' in payload:
@@ -149,7 +149,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
             symptom, symptom_classes = symptom_classes[0], ','.join(symptom_classes)
             send_FB_text(
                 bot_user['sender_id'],
-                'Alright. Do you have {0}?'.format(symptom),
+                'Alright. Do you have {0}?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
             )
 
