@@ -125,7 +125,7 @@ def handle_quick_replies(payload, bot_user, apimedic_client):
                 bot_user['gender'],
                 bot_user['year_of_birth']
             )
-            symptom_names = [symptom['Name'] for symptom in proposed_symptoms if symptom['Name'] not in bot_user['symptoms_seen']]
+            symptom_names = [symptom['Name'] for symptom in proposed_symptoms if symptom['Name'] not in bot_user['symptoms_seen'] or symptom['Name'] == 'Fast, deepened breathing']
             symptom, symptom_classes = symptom_names[0], ','.join(symptom_names)
 
             send_FB_text(
