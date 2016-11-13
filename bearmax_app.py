@@ -83,6 +83,8 @@ def handle_event(event, bot_user, apimedic_client):
                 bot_user,
                 apimedic_client
             )
+        elif message in ['Male', 'Female']:
+            pass
         else:
             natural_language_classifier, instance_id = watson.init_nat_lang_classifier(True)
             symptom, symptom_classes = watson.get_symptoms(message, natural_language_classifier, instance_id)
