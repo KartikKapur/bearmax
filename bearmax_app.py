@@ -88,7 +88,7 @@ def handle_event(event, bot_user, apimedic_client):
         else:
             natural_language_classifier, instance_id = watson.init_nat_lang_classifier(True)
             symptom, symptom_classes = watson.get_symptoms(message, natural_language_classifier, instance_id)
-            print('Symptom: {0}, Symptom Classes: {1}'.format(symptom, symptom_classes)
+            print('Symptom: {0}, Symptom Classes: {1}'.format(symptom, symptom_classes))
             symptom_classes = ','.join([symptom_class['class_name'] for symptom_class in symptom_classes][1:])
             send_FB_text(
                 bot_user['sender_id'],
