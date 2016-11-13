@@ -3,3 +3,4 @@ gunicorn==19.6.0
 requests==2.10.0
 webob==1.6.1
 watson-developer-cloud==0.22.0
+pymongo==3.2.2
