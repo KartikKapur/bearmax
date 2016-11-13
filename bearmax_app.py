@@ -95,6 +95,13 @@ def handle_event(event, bot_user, apimedic_client):
                 'You seem to have a symptom known as \"{0}\". Is this true?'.format(symptom.lower()),
                 quick_replies=yes_no_quick_replies(symptom, symptom_classes)
              )
+    elif 'postback' in event:
+        handle_postback(event['postback']['payload'], bot_user, apimedic_client)
+
+def handle_postback(payload, bot_user, apimedic_client):
+    if 'description' in payload:
+        ailment_id = int(payload.split(':')[1])
+        send_description(ailment_id, apimedic_client, bot_user)
 
 def diagnose(apimedic_client, bot_user):
     diagnosis = apimedic_client.get_diagnosis(
@@ -107,14 +114,25 @@ def diagnose(apimedic_client, bot_user):
         accuracy = diag['Issue']['Accuracy']
         if specialisation == 'General practice':
             specialisation = 'treatment'
-        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of an ailment known as \"{1}\"'.format(accuracy, name.lower()))
-    send_FB_text(bot_user['sender_id'], 'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()))
-    description = apimedic_client.get_description(diagnosis[0]['Issue']['ID'])
+        send_FB_text(bot_user['sender_id'], 'You have a {0}% chance of an ailment known as \"{1}\"'.format(accuracy, name.lower())) 
+    ailment_id = diagnosis[0]['Issue']['ID']
+    send_FB_buttons(
+        bot_user['sender_id'],
+        'You should seek {0} for your {1}'.format(specialisation.lower(), diagnosis[0]['Issue']['Name'].lower()),
+        [{
+            'type': 'postback',
+            'title': 'Read more',
+            'payload': 'description:{0}'.format(ailment_id)
+        }]
+    )
+    reset_symptoms(bot_user)
+
+def send_description(ailment_id, apimedic_client, bot_user):
+    description = apimedic_client.get_description(ailment_id)
     for sentence in description['DescriptionShort'].split('. '):
         send_FB_text(bot_user['sender_id'], sentence)
     for sentence in description['TreatmentDescription'].split('. '):
         send_FB_text(bot_user['sender_id'], sentence)
-    reset_symptoms(bot_user)
 
 def handle_quick_replies(payload, bot_user, apimedic_client):
     print('Payload: {0}'.format(payload))
