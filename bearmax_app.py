@@ -9,8 +9,6 @@ from pymongo import MongoClient
 
 import watson
 
-import facebook
-
 from symptomchecker import SymptomChecker
 
 FB_APP_TOKEN = 'EAAQ7z3BxdYgBAHGNIM6phWb4mH0vDCfsaQaY5rxoN4ZCzZBaKmheZCsYZAkLZCB5XLmcUKkby9N5ncCPIH58swZCp5jRhTTnEQ9aaDttl4eVYUMp8h3x954vUQ6SsX5JOPeEZAhGkdl3ot5jfy8UtgZBDIXWdkOyk51Q13C3ZBoAC2QZDZD'
@@ -57,7 +55,7 @@ def webhook():
             if 'sender' in event:
                 sender_id = event['sender']['id']
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
-                    send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant. What seems to be the problem?')
+                    send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
                 sender_id_matches = [x for x in handle.bot_users.find({'sender_id': sender_id})]
                 if sender_id_matches:
@@ -71,7 +69,12 @@ def handle_event(event, bot_user, apimedic_client):
     if 'message' in event and 'text' in event['message']:
         message = event['message']['text']
         print('Message: {0}'.format(message))
-        if 'quick_reply' in event['message']:
+        if 'Gender:' and 'YOB:' in message:
+            gender_string, yob_string = message.split(',')
+            gender, yob = gender_string.split(': ')[1], int(yob_string.split(': ')[1])
+            init_gender_yob(bot_user['sender_id'], gender, yob)
+            send_FB_text(bot_user['sender_id'], 'Thank you.')
+        elif 'quick_reply' in event['message']:
             handle_quick_replies(
                 event['message']['quick_reply']['payload'],
                 bot_user,
@@ -88,7 +91,6 @@ def handle_event(event, bot_user, apimedic_client):
             )
 
 def diagnose(apimedic_client, bot_user):
-
     diagnosis = apimedic_client.get_diagnosis(
         bot_user['symptoms'],
         bot_user['gender'],
@@ -169,13 +171,22 @@ def add_symptom(bot_user, symptom):
     )
 
 def init_bot_user(sender_id):
-    gender, yob = facebook.get_demographics(sender_id)
+    send_FB_text(sender_id, 'Please enter your gender and your year of birth as follows: "Gender: <gender>, YOB: <yob>"')
     handle.bot_users.insert({
         'sender_id': sender_id,
-        'gender': gender,
-        'year_of_birth': yob,
         'symptoms': []
     })
+
+def init_gender_yob(sender_id, gender, yob):
+    handle.bot_users.update(
+        {'sender_id': sender_id},
+        {
+            '$set': {
+                'gender': gender,
+                'year_of_birth': yob
+            }
+        }
+    )
 
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
