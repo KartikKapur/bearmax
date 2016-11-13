@@ -54,8 +54,6 @@ def webhook():
             event = data[i]
             if 'sender' in event:
                 sender_id = event['sender']['id']
-                send_FB_text(sender_id, 'u hate me.')
-                return Response()
                 if handle.bot_users.find({'sender_id': sender_id}).count() == 0:
                     send_FB_text(sender_id, 'Hello. I am Bearmax, your personal healthcare assistant.')
                     init_bot_user(sender_id)
@@ -64,8 +62,8 @@ def webhook():
                     if sender_id_matches:
                         bot_user = sender_id_matches[0]
                         send_FB_text(bot_user['sender_id'], 'we get it.')
-                        # apimedic_client = SymptomChecker()
-                        # handle_event(event, bot_user, apimedic_client)
+                        apimedic_client = SymptomChecker()
+                        handle_event(event, bot_user, apimedic_client)
 
     return Response()
 
